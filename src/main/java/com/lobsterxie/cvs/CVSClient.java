@@ -233,7 +233,7 @@ public class CVSClient implements Closeable {
      * 主程序 - 增强的命令行接口，支持配置管理
      */
     public static void main(String[] args) {
-        if (args.length < 1) {
+        if (args.length < 2) {
             printUsage();
             return;
         }
