@@ -1,0 +1,1 @@
+java -Dfile.encoding=GBK -jar target/cvs-client-1.0-SNAPSHOT.jar $@
