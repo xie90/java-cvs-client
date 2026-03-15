@@ -15,7 +15,7 @@ public class CheckoutHandle extends AbstractHandle{
 
     public void handle(String[] commandArgs) throws Exception {
         if (commandArgs.length < 2) {
-            System.err.println("用法: cvs " + tag + " checkout <模块名> <目标目录>");
+            System.err.println("用法: jcvs checkout " + tag + " <模块名> <目标目录>");
             return;
         }
         checkout(commandArgs[0], new File(commandArgs[1]));

@@ -3,8 +3,11 @@ package com.lobsterxie.cvs.handler;
 import org.netbeans.lib.cvsclient.Client;
 import org.netbeans.lib.cvsclient.command.update.UpdateCommand;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Map;
 
 public class UpdateHandle extends AbstractHandle{
 
@@ -46,10 +49,49 @@ public class UpdateHandle extends AbstractHandle{
             command.setRecursive(false);
             command.setCVSCommand('C',"");
             command.setCVSCommand('A',"");
+            command.setResetStickyOnes(true);
             //deleteAndCreateEmptyFile(target);
         }
 
         return executeCommand(command, "更新: " + target.getName());
+        //return updateWithSystemCommand(target);
+    }
+
+    /**
+     * 使用系统命令添加目录
+     */
+    private boolean updateWithSystemCommand(File dir) throws Exception {
+        String[] cmd = {
+                "/bin/sh",
+                "-c",
+                "cvs update -A " + dir.getAbsolutePath()
+        };
+
+        ProcessBuilder pb = new ProcessBuilder(cmd);
+        pb.directory(workingDirectory);
+        pb.redirectErrorStream(true);
+
+        System.out.println("执行命令: cvs update " + dir.getAbsolutePath());
+
+        Process process = pb.start();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
+
+        int exitCode = process.waitFor();
+
+        if (exitCode == 0) {
+            System.out.println("✅ 目录update成功: " + dir.getName());
+
+            return true;
+        } else {
+            System.err.println("❌ 目录添加失败，退出代码: " + exitCode);
+            return false;
+        }
     }
 
     /**

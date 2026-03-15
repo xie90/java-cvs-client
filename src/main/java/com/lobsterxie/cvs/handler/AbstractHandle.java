@@ -8,7 +8,9 @@ import org.netbeans.lib.cvsclient.command.status.StatusCommand;
 import org.netbeans.lib.cvsclient.event.CVSAdapter;
 import org.netbeans.lib.cvsclient.event.MessageEvent;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -196,6 +198,41 @@ public abstract class AbstractHandle {
 
         executeCommand(command, "检查粘性标签");
         return hasSticky[0];
+    }
+
+    /**
+     * 使用系统命令添加目录
+     */
+    private boolean handleWithSystemCommand(File dir) throws Exception {
+        ProcessBuilder pb = new ProcessBuilder(
+                "cvs",
+                "add",
+                dir.getAbsolutePath()
+        );
+        pb.directory(workingDirectory);
+        pb.redirectErrorStream(true);
+
+        System.out.println("执行命令: cvs add " + dir.getAbsolutePath());
+
+        Process process = pb.start();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
+
+        int exitCode = process.waitFor();
+
+        if (exitCode == 0) {
+            System.out.println("✅ 目录添加成功: " + dir.getName());
+
+            return true;
+        } else {
+            System.err.println("❌ 目录添加失败，退出代码: " + exitCode);
+            return false;
+        }
     }
 
 
