@@ -265,6 +265,7 @@ public class CVSClient implements Closeable {
                 case "add":
                 case "revert":
                 case "tag":
+                case "history":
                     args[1] = command;
                     handleTagCommand(tag, Arrays.copyOfRange(args, 1, args.length));
                     break;
@@ -362,6 +363,11 @@ public class CVSClient implements Closeable {
                 case "tag":
                     TagHandle tagHandle = new TagHandle(client.getClient(), true, tag, config.getCvsRoot());
                     tagHandle.handle(commandArgs);
+                    break;
+
+                case "history":
+                    HistoryHandle historyHandle = new HistoryHandle(client.getClient(), true, tag, config.getCvsRoot());
+                    historyHandle.handle(commandArgs);
                     break;
 
                 default:
