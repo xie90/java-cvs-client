@@ -14,9 +14,9 @@ public class UpdateHandle extends AbstractHandle{
     @Override
     public void handle(String[] commandArgs) throws Exception {
         if (commandArgs.length < 1) {
-            System.err.println("用法: cvs " + tag + " update <目录或文件路径>");
-            System.err.println("  更新目录: cvs " + tag + " update /path/to/dir");
-            System.err.println("  更新文件: cvs " + tag + " update /path/to/file");
+            System.err.println("用法: jcvs " + tag + " update <目录或文件路径>");
+            System.err.println("  更新目录: jcvs " + tag + " update /path/to/dir");
+            System.err.println("  更新文件: jcvs " + tag + " update /path/to/file");
             return;
         }
         File target = new File(commandArgs[0]);
@@ -43,17 +43,18 @@ public class UpdateHandle extends AbstractHandle{
         UpdateCommand command = new UpdateCommand();
         command.setRecursive(target.isDirectory()); // 如果是目录则递归更新
 
-        if (!target.isDirectory()) {
-            // 如果是单个文件，设置只更新该文件
-            command.setFiles(new File[]{target});
+        if (target.isDirectory()) {
             command.setRecursive(false);
             command.setCVSCommand('C',"");
             command.setCVSCommand('A',"");
             command.setResetStickyOnes(true);
             //deleteAndCreateEmptyFile(target);
+        
+            return executeCommand(command, "更新: " + target.getName());
         }
-
-        return executeCommand(command, "更新: " + target.getName());
+        else {
+            return forceUpdate(target);
+        }
         //return updateWithSystemCommand(target);
     }
 

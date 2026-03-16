@@ -14,9 +14,9 @@ public class LogHandle extends AbstractHandle {
     public void handle(String[] commandArgs) throws Exception {
         // 修改后的代码：判断参数是目录还是文件
         if (commandArgs.length < 1) {
-            System.err.println("用法: cvs " + tag + " log <目标路径>");
-            System.err.println("  示例 (查看目录所有文件历史): cvs " + tag + " log /path/to/dir");
-            System.err.println("  示例 (查看单个文件历史): cvs " + tag + " log /path/to/file.txt");
+            System.err.println("用法: jcvs " + tag + " log <目标路径>");
+            System.err.println("  示例 (查看目录所有文件历史): jcvs " + tag + " log /path/to/dir");
+            System.err.println("  示例 (查看单个文件历史): jcvs " + tag + " log /path/to/file.txt");
             return;
         }
         File target = new File(commandArgs[0]);

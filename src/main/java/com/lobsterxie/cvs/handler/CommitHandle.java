@@ -13,9 +13,9 @@ public class CommitHandle extends AbstractHandle{
 
     public void handle(String[] commandArgs) throws Exception {
         if (commandArgs.length < 3 || !commandArgs[1].equals("-m")) {
-            System.err.println("用法: cvs " + tag + " commit <工作目录或文件> -m <提交信息>");
-            System.err.println("  提交整个目录: cvs " + tag + " commit /path/to/dir -m \"信息\"");
-            System.err.println("  提交单个文件: cvs " + tag + " commit /path/to/file.txt -m \"信息\"");
+            System.err.println("用法: jcvs " + tag + " commit <工作目录或文件> -m <提交信息>");
+            System.err.println("  提交整个目录: jcvs " + tag + " commit /path/to/dir -m \"信息\"");
+            System.err.println("  提交单个文件: jcvs " + tag + " commit /path/to/file.txt -m \"信息\"");
             //System.err.println("  提交多个文件: cvs " + tag + " commit file1.txt file2.txt -m \"信息\"");
             return;
         }
