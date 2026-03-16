@@ -13,8 +13,8 @@ public class RevertHandle extends AbstractHandle{
     @Override
     public void handle(String[] commandArgs) throws Exception {
         if (commandArgs.length < 2) {
-            System.err.println("用法: cvs " + tag + " revert <文件路径> <版本号>");
-            System.err.println("  示例: cvs " + tag + " revert /path/to/file.txt 1.5");
+            System.err.println("用法: jcvs revert " + tag + " <文件路径> <版本号>");
+            System.err.println("  示例: jcvs revert " + tag + " /path/to/file.txt 1.5");
             System.err.println("\n说明：回退后会产生粘性标签，可用 'cleartag' 命令清除");
             return;
         }

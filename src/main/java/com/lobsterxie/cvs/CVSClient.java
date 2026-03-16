@@ -237,6 +237,8 @@ public class CVSClient implements Closeable {
             printUsage();
             return;
         }
+        //去除换行符
+        args[args.length - 1] = args[args.length - 1].trim();
 
         try {
             // 加载配置
@@ -261,6 +263,7 @@ public class CVSClient implements Closeable {
                 case "status":
                 case "log":
                 case "add":
+                case "revert":
                     args[1] = command;
                     handleTagCommand(tag, Arrays.copyOfRange(args, 1, args.length));
                     break;

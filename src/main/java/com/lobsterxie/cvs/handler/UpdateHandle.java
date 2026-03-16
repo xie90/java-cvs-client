@@ -95,6 +95,59 @@ public class UpdateHandle extends AbstractHandle{
     }
 
     /**
+     * 强制更新文件 - 删除本地文件后重新检出
+     */
+    private boolean forceUpdate(File target) throws Exception {
+        System.out.println("正在强制更新：" + target.getName());
+
+        // 1. 先删除本地文件
+        if (target.exists()) {
+            if (target.delete()) {
+                System.out.println("已删除本地文件：" + target.getName());
+            } else {
+                System.err.println("删除本地文件失败：" + target.getName());
+            }
+        }
+
+        // 2. 删除 CVS 元数据中的条目
+        File cvsDir = new File(target.getParentFile(), "CVS");
+        File entriesFile = new File(cvsDir, "Entries");
+
+        if (entriesFile.exists()) {
+            // 备份 Entries 文件
+            File entriesBackup = new File(cvsDir, "Entries.Backup");
+            java.nio.file.Files.copy(entriesFile.toPath(), entriesBackup.toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            // 读取 Entries 文件
+            String content = new String(java.nio.file.Files.readAllBytes(entriesFile.toPath()));
+            String[] lines = content.split("\n");
+
+            // 过滤掉目标文件的条目
+            StringBuilder newContent = new StringBuilder();
+            String targetName = target.getName();
+            for (String line : lines) {
+                if (!line.startsWith("/" + targetName + "/")) {
+                    newContent.append(line).append("\n");
+                }
+            }
+
+            // 写回 Entries 文件
+            java.nio.file.Files.write(entriesFile.toPath(), newContent.toString().getBytes());
+            System.out.println("已从 Entries 文件中移除：" + targetName);
+        }
+
+        // 3. 重新执行 update 命令
+        UpdateCommand command = new UpdateCommand();
+        command.setCVSCommand('A', "");
+        command.setCVSCommand('C', "");
+        command.setFiles(new File[]{target});
+        command.setRecursive(false);
+
+        return executeCommand(command, "重新检出：" + target.getName());
+    }
+
+    /**
      * 根据文件绝对路径，删除文件然后创建空文件
      * @param file 文件的绝对路径
      * @return 操作是否成功
