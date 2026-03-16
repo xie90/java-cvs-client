@@ -264,6 +264,7 @@ public class CVSClient implements Closeable {
                 case "log":
                 case "add":
                 case "revert":
+                case "tag":
                     args[1] = command;
                     handleTagCommand(tag, Arrays.copyOfRange(args, 1, args.length));
                     break;
@@ -357,7 +358,12 @@ public class CVSClient implements Closeable {
                     AddHandle addHandle = new AddHandle(client.getClient(), true, tag, config.getCvsRoot());
                     addHandle.handle(commandArgs);
                     break;
-                    
+
+                case "tag":
+                    TagHandle tagHandle = new TagHandle(client.getClient(), true, tag, config.getCvsRoot());
+                    tagHandle.handle(commandArgs);
+                    break;
+
                 default:
                     System.err.println("未知命令: " + command);
             }
@@ -431,8 +437,13 @@ public class CVSClient implements Closeable {
         System.err.println("  添加目录: jcvs add <标签> /path/to/dir");
         System.err.println("  递归添加: jcvs add <标签> /path/to/dir -r");
         System.err.println("  添加空目录: jcvs add <标签> /path/to/empty/dir -p remoteWorkDir(目标目录的上一级)");
-        System.out.println("  查看状态: jcvs <标签> status <工作目录>             ");
-        System.out.println("  查看日志: jcvs <标签> log <工作目录>                ");
+        System.out.println("  查看状态: jcvs status <标签>  <工作目录>             ");
+        System.out.println("  查看日志: jcvs log <标签>  <工作目录>                ");
+        System.err.println("用法：jcvs  tag <标签名> <文件或目录路径>");
+        System.err.println("  给文件打标签：jcvs tag <标签名> v1.0.0 /path/to/file.txt");
+        System.err.println("  给目录打标签：jcvs tag <标签名> v1.0.0 /path/to/dir");
+        System.err.println("  删除标签：jcvs tag <标签名> -d v1.0.0 /path/to/file.txt");
+        System.err.println("  移动标签：jcvs tag <标签名> -F -r 新版本号 v1.0.0 /path/to/file.txt");
         System.out.println();
         System.out.println("CVSROOT 格式: :pserver:用户名@主机名[:端口]/仓库路径");
         System.out.println("例如: :pserver:anoncvs@example.com:2401/repo");
