@@ -3,6 +3,7 @@ package com.lobsterxie.cvs.handler;
 import org.netbeans.lib.cvsclient.Client;
 import org.netbeans.lib.cvsclient.command.GlobalOptions;
 import org.netbeans.lib.cvsclient.command.checkout.CheckoutCommand;
+import org.netbeans.lib.cvsclient.command.history.HistoryCommand;
 import org.netbeans.lib.cvsclient.command.log.LogCommand;
 import org.netbeans.lib.cvsclient.command.status.StatusCommand;
 import org.netbeans.lib.cvsclient.event.CVSAdapter;
@@ -95,8 +96,8 @@ public abstract class AbstractHandle {
         if (!connected || client == null) {
             throw new IllegalStateException("未连接到服务器，请先调用 connect()");
         }
-        // 对于非检出命令，需要确保工作目录已设置
-        if (!(command instanceof CheckoutCommand)) {
+        // 对于非检出命令和历史命令，需要确保工作目录已设置
+        if (!(command instanceof CheckoutCommand) && !(command instanceof HistoryCommand)) {
             if (workingDirectory == null) {
                 throw new IllegalStateException("未设置工作目录，请先调用 setWorkingDirectory()");
             }

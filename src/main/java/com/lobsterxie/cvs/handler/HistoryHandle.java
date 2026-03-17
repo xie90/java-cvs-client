@@ -1,10 +1,11 @@
 package com.lobsterxie.cvs.handler;
 
 import org.netbeans.lib.cvsclient.Client;
+import org.netbeans.lib.cvsclient.command.history.HistoryCommand;
+import org.netbeans.lib.cvsclient.event.CVSAdapter;
+import org.netbeans.lib.cvsclient.event.MessageEvent;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 
 /**
  * CVS History 处理器 - 用于查看 CVS 历史记录
@@ -19,7 +20,7 @@ public class HistoryHandle extends AbstractHandle {
     public void handle(String[] commandArgs) throws Exception {
         if (commandArgs.length < 1) {
             System.err.println("用法：jcvs " + tag + " history [选项]");
-            System.err.println("  查看历史记录：jcvs history " + tag + "");
+            System.err.println("  查看历史记录：jcvs history " + tag);
             System.err.println("  查看提交记录：jcvs history " + tag + " -c");
             System.err.println("  查看更新记录：jcvs history " + tag + " -u");
             System.err.println("  查看检出记录：jcvs history " + tag + " -o");
@@ -33,17 +34,19 @@ public class HistoryHandle extends AbstractHandle {
             System.err.println("  -m    指定模块名");
             System.err.println("  -U    指定用户名");
             System.err.println("  -D    指定起始日期 (YYYY-MM-DD)");
-            System.err.println("  -r    只查看最近 N 条记录");
+            System.err.println("  -r    指定版本号");
+            System.err.println("  -t    指定标签");
             return;
         }
 
         // 解析参数
-        StringBuilder cmdBuilder = new StringBuilder("cvs history");
+        HistoryCommand command = new HistoryCommand();
 
         String module = null;
         String user = null;
         String date = null;
-        int limit = -1;
+        String revision = null;
+        String tag = null;
         boolean showCommit = false;
         boolean showUpdate = false;
         boolean showCheckout = false;
@@ -53,60 +56,69 @@ public class HistoryHandle extends AbstractHandle {
 
             if (arg.equals("-c")) {
                 showCommit = true;
-                cmdBuilder.append(" -c");
+                command.setReportCommits(true);
             } else if (arg.equals("-u")) {
                 showUpdate = true;
-                cmdBuilder.append(" -u");
+                command.setReportEventType("U");
             } else if (arg.equals("-o")) {
                 showCheckout = true;
-                cmdBuilder.append(" -o");
+                command.setReportCheckouts(true);
             } else if (arg.equals("-m") && i + 1 < commandArgs.length) {
                 module = commandArgs[++i];
-                cmdBuilder.append(" -m ").append(module);
+                command.addReportOnModule(module);
             } else if (arg.equals("-U") && i + 1 < commandArgs.length) {
                 user = commandArgs[++i];
-                cmdBuilder.append(" -U ").append(user);
+                command.addForUsers(user);
             } else if (arg.equals("-D") && i + 1 < commandArgs.length) {
                 date = commandArgs[++i];
-                cmdBuilder.append(" -D ").append(date);
+                command.setSinceDate(date);
             } else if (arg.equals("-r") && i + 1 < commandArgs.length) {
-                limit = Integer.parseInt(commandArgs[++i]);
+                revision = commandArgs[++i];
+                command.setSinceRevision(revision);
+            } else if (arg.equals("-t") && i + 1 < commandArgs.length) {
+                tag = commandArgs[++i];
+                command.setSinceTag(tag);
+            } else if (arg.equals("-a")) {
+                command.setForAllUsers(true);
+            } else if (arg.equals("-w") && i + 1 < commandArgs.length) {
+                String workingDir = commandArgs[++i];
+                setWorkingDirectory(new File(workingDir));
+                command.setForWorkingDirectory(true);
             }
+        }
+
+        // 如果没有设置工作目录，使用当前用户目录
+        if (workingDirectory == null) {
+            setWorkingDirectory(new File(System.getProperty("user.dir")));
         }
 
         // 默认显示提交记录
         if (!showCommit && !showUpdate && !showCheckout) {
-            showCommit = true;
-            cmdBuilder.append(" -c");
+            command.setReportCommits(true);
         }
 
-        System.out.println("执行命令：" + cmdBuilder);
+        System.out.println("正在查询 CVS 历史记录...");
         System.out.println();
 
-        // 使用系统命令执行 cvs history
-        ProcessBuilder pb = new ProcessBuilder("/bin/sh", "-c", cmdBuilder.toString());
-        pb.directory(workingDirectory != null ? workingDirectory : new File("."));
-        pb.redirectErrorStream(true);
-
-        Process process = pb.start();
-
-        int count = 0;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (limit > 0 && count >= limit) break;
-                System.out.println(line);
-                count++;
+        // 添加事件监听器来捕获并输出历史记录
+        client.getEventManager().addCVSListener(new CVSAdapter() {
+            @Override
+            public void messageSent(MessageEvent e) {
+                String message = e.getMessage();
+                if (message != null && !message.isEmpty()) {
+                    // 过滤掉无效记录的警告信息
+                    if (message.contains("warning") && message.contains("invalid")) {
+                        return;
+                    }
+                    if (e.isError()) {
+                        System.err.println("错误：" + message);
+                    } else {
+                        System.out.println(message);
+                    }
+                }
             }
-        }
+        });
 
-        int exitCode = process.waitFor();
-
-        System.out.println();
-        if (exitCode == 0) {
-            System.out.println("共找到 " + count + " 条历史记录");
-        } else {
-            System.err.println("history 命令执行失败，退出代码：" + exitCode);
-        }
+        executeCommand(command, "查询历史记录");
     }
 }
