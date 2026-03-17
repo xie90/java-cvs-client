@@ -44,8 +44,8 @@ public class UpdateHandle extends AbstractHandle{
         command.setRecursive(target.isDirectory()); // 如果是目录则递归更新
 
         if (target.isDirectory()) {
-            command.setRecursive(false);
-            command.setCVSCommand('C',"");
+            //command.setRecursive(false);
+            //command.setCVSCommand('C',"");
             command.setCVSCommand('A',"");
             command.setResetStickyOnes(true);
             //deleteAndCreateEmptyFile(target);
